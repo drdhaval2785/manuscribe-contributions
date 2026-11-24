@@ -1,0 +1,5 @@
+{
+ "wordings": ["1"],
+ "keys": ["fed7ed31e9afc8c5"],
+ "about": "wordings: the versions of the consent text (Manuscribe, recogview.js CONSENT.version) whose packages are taken; keys: the ids of the maintainer's public keys (manuscript_ocr: python -m msocr.seal show) a package may be sealed to"
+}

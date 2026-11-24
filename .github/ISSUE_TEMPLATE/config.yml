@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Manuscribe
+    url: https://github.com/drdhaval2785/manuscribe
+    about: Questions about Manuscribe itself, and its issues.

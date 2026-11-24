@@ -1,0 +1,31 @@
+# Answers every contribution and withdrawal issue: tools/inbox.py says what it does.
+name: Inbox
+on:
+  issues:
+    types: [opened, edited, reopened, labeled]
+permissions:
+  contents: write
+  issues: write
+concurrency:
+  group: inbox
+  cancel-in-progress: false
+jobs:
+  inbox:
+    if: github.event.action != 'labeled' || github.event.label.name == 'withdrawal-confirmed'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CONTRIBUTION_KEY: ${{ secrets.CONTRIBUTION_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: The package that opens sealed lines, where the maintainer's key is a secret here
+        run: if [ -n "$CONTRIBUTION_KEY" ]; then python -m pip install --quiet cryptography; fi
+      - name: Answer the issue
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python tools/inbox.py event

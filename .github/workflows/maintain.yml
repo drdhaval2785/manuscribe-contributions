@@ -1,0 +1,35 @@
+# By hand (Actions › Maintain › Run workflow): labels, once, before the first issue; sweep, to answer any open issue
+# left unanswered; release, to publish a data release from register.tsv as it stands.
+name: Maintain
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: What to do
+        type: choice
+        options: [labels, sweep, release]
+        default: labels
+permissions:
+  contents: write
+  issues: write
+concurrency:
+  group: inbox
+  cancel-in-progress: false
+jobs:
+  maintain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CONTRIBUTION_KEY: ${{ secrets.CONTRIBUTION_KEY }}
+      TASK: ${{ inputs.task }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: if [ -n "$CONTRIBUTION_KEY" ]; then python -m pip install --quiet cryptography; fi
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python tools/inbox.py "$TASK"

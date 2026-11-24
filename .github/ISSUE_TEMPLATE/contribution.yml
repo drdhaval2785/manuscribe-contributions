@@ -1,0 +1,44 @@
+name: Contribute corrected lines
+description: Send the sealed package of corrected lines that Manuscribe saved (Manuscript tab › Contribute corrected lines…).
+title: "Contribution: "
+labels: ["contribution"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Manuscribe filled in this form when it saved your package. **Drag the file it saved** (`manuscribe-contribution-c….zip`) into the *Sealed package* box below, then submit.
+
+        This issue is public: it shows the manuscript's name, the number of lines and your GitHub account. The lines themselves are sealed in the file, and only the maintainer of the models can open them. A bot answers here within a few minutes, once the package is registered.
+
+        To withdraw the lines later, use “Withdraw…” in Manuscribe's Manuscript tab, or open a “Withdraw contributed lines” issue.
+  - type: input
+    id: manuscript
+    attributes:
+      label: Manuscript
+      description: The name the model cards are to give it, as in your consent.
+    validations:
+      required: true
+  - type: input
+    id: ids
+    attributes:
+      label: Package ids
+      description: As Manuscribe gave them (c20261124-…).
+  - type: input
+    id: lines
+    attributes:
+      label: Lines
+  - type: textarea
+    id: package
+    attributes:
+      label: Sealed package
+      description: Drag the file Manuscribe saved here. Several files, if Manuscribe made several (each is at most 20 MB).
+      placeholder: Drag manuscribe-contribution-c….zip here
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Consent
+      options:
+        - label: I gave this consent in Manuscribe, and I have the right to share these line images for training the recognition models.
+          required: true

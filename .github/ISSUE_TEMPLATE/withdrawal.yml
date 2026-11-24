@@ -1,0 +1,26 @@
+name: Withdraw contributed lines
+description: Withdraw lines sent earlier, so that they are deleted here and left out of every model trained from now on.
+title: "Withdrawal: "
+labels: ["withdrawal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Lines withdrawn are deleted here and left out of every model trained from now on. Models already trained on them while the consent stood remain, and are not withdrawn.
+
+        A bot withdraws at once the lines that this GitHub account sent; lines sent by another account wait for the maintainer. Without a GitHub account, write to drdhaval2785@gmail.com with the package ids.
+  - type: input
+    id: manuscript
+    attributes:
+      label: Manuscript
+  - type: textarea
+    id: ids
+    attributes:
+      label: Contributions to withdraw
+      description: The package ids Manuscribe gave (c20261124-…), or the numbers of the issues the lines came in (#12), one per line.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why (if you wish to say)

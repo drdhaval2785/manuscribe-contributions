@@ -1,3 +1,3 @@
 id	issue	contributor	manuscript	script	lines	sides	part	wording	consent_date	received	state	store	sha256	bytes	note
 c20261124-89b4cd7ce7ae	1	drdhaval2785	Synthetic test lines (not a manuscript)		3		1/1	1	2026-11-24	2026-11-24T05:05:02+00:00	withdrawn	packages-2026	13cdab6b52ea6bf1fd9e2d7e607ce28089106856fff7de92698c4ef855ac307d	19069	withdrawn 2026-11-24, issue #2
-c20261124-436b8a3ca7d4	3	drdhaval2785	Synthetic test (printed text, not a manuscript)	sa-Deva	3	1	1/1	2	2026-11-24	2026-11-24T07:00:59+00:00	registered	packages-2026	7b9af7e5624701f322305ea83b09c4fcba08e3011ce3b46320ffb9ff9fb67d35	225732	lines opened and checked here
+c20261124-436b8a3ca7d4	3	drdhaval2785	Synthetic test (printed text, not a manuscript)	sa-Deva	3	1	1/1	2	2026-11-24	2026-11-24T07:00:59+00:00	withdrawn	packages-2026	7b9af7e5624701f322305ea83b09c4fcba08e3011ce3b46320ffb9ff9fb67d35	225732	withdrawn 2026-11-24, issue #4

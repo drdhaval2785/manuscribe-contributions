@@ -1,5 +1,13 @@
 {
- "wordings": ["1"],
- "keys": ["fed7ed31e9afc8c5"],
- "about": "wordings: the versions of the consent text (Manuscribe, recogview.js CONSENT.version) whose packages are taken; keys: the ids of the maintainer's public keys (manuscript_ocr: python -m msocr.seal show) a package may be sealed to"
+ "wordings": [
+  "1",
+  "2"
+ ],
+ "keys": [
+  "fed7ed31e9afc8c5"
+ ],
+ "about": "wordings: the versions of the consent text (Manuscribe, recogview.js CONSENT.version) whose packages are taken; sides: those of them that give whole folio sides, not lines only; keys: the ids of the maintainer's public keys (devanagari-manuscript-ocr: python -m msocr.seal show) a package may be sealed to",
+ "sides": [
+  "2"
+ ]
 }

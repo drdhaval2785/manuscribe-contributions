@@ -34,19 +34,26 @@ PNG = bytes.fromhex("89504e470d0a1a0a") + b"\0" * 64
 WORDING = {"version": "1", "date": "2026-11-24", "approved": True, "title": "t", "paragraphs": ["p"], "question": "q", "rights": "r"}
 
 
-def package(count=2, answer="yes", rights=True, wording="1", key=KEY, tamper=None, made=None, inner_count=None, extra=None):
+def package(count=2, answer="yes", rights=True, wording="1", key=KEY, tamper=None, made=None, inner_count=None, extra=None, sides=0, script="sa-Deva",
+            drawn="here"):
     """-> the bytes of a sealed package, as Manuscribe makes it"""
     made = made or datetime.datetime.now(datetime.timezone.utc).isoformat()
     consent = {"answer": answer, "rights": rights, "name": "Test library, MS 1", "date": "2026-11-24T10:00:00Z", "wording": wording}
     lines = [{"image": f"lines/1r_main_{i + 1:02d}.png", "text": f"line {i}", "proposed": f"lime {i}", "folio": "1r", "block": "main", "line": i + 1}
              for i in range(inner_count if inner_count is not None else count)]
+    side_list = [{"image": f"sides/{k + 1}r.jpg", "geometry": f"sides/{k + 1}r.json", "folio": f"{k + 1}r", "layout": "linear", "lines": {"main": 8}}
+                 for k in range(sides)]
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w") as z:
-        z.writestr("contribution.json", json.dumps({"format": "manuscribe-contribution", "version": 1, "made": made, "part": [1, 1],
-                                                    "manuscript": {"name": consent["name"]}, "consent": consent, "wording": dict(WORDING, version=wording), "lines": lines}))
+        z.writestr("contribution.json", json.dumps({"format": "manuscribe-contribution", "version": 2, "made": made, "part": [1, 1],
+                                                    "manuscript": {"name": consent["name"], "script": script}, "consent": consent,
+                                                    "wording": dict(WORDING, version=wording), "lines": lines, "sides": side_list}))
         for l in lines:
             z.writestr(l["image"], PNG)
             z.writestr(l["image"].replace(".png", ".txt"), l["text"] + "\n")
+        for sd in side_list:
+            z.writestr(sd["image"], b"\xff\xd8\xff" + b"\0" * 64)
+            z.writestr(sd["geometry"], json.dumps({"folio": sd["folio"], "drawn": drawn, "boxes": {"main": {"rect": [10, 10, 400, 200], "lines": 8}}}))
         for n, b in (extra or {}).items():
             z.writestr(n, b)
     k, iv = AESGCM.generate_key(bit_length=256), os.urandom(12)
@@ -55,7 +62,7 @@ def package(count=2, answer="yes", rights=True, wording="1", key=KEY, tamper=Non
     sha = hashlib.sha256(sealed).hexdigest()
     pid = "c" + made[:10].replace("-", "") + "-" + sha[:12]
     about = {"format": "manuscribe-contribution", "version": 2, "sealed": True, "id": pid, "made": made, "manuscribe": "0.11.0",
-             "inbox": "owner/inbox", "manuscript": {"name": consent["name"]}, "count": count, "part": [1, 1], "consent": consent,
+             "inbox": "owner/inbox", "manuscript": {"name": consent["name"], "script": script}, "count": count, "sides": sides, "part": [1, 1], "consent": consent,
              "wording": dict(WORDING, version=wording),
              "seal": {"alg": inbox.ALG, "key": inbox.key_id(key.public_key()), "wrapped": base64.b64encode(wrapped).decode(),
                       "iv": base64.b64encode(iv).decode(), "file": "sealed.bin", "bytes": len(sealed), "sha256": sha}}
@@ -85,8 +92,8 @@ class Inbox(unittest.TestCase):
         self.dir = Path(tempfile.mkdtemp())
         self.root = self.dir / "repo"
         self.root.mkdir()
-        shutil.copy(HERE / "register.tsv", self.root / "register.tsv")
-        (self.root / "approved.json").write_text(json.dumps({"wordings": ["1"], "keys": [inbox.key_id(KEY.public_key())]}))
+        (self.root / "register.tsv").write_text("\t".join(inbox.FIELDS) + "\n")      # an empty register, not this repository's
+        (self.root / "approved.json").write_text(json.dumps({"wordings": ["1", "2"], "sides": ["2"], "keys": [inbox.key_id(KEY.public_key())]}))
         os.environ["INBOX_ROOT"] = str(self.root)
 
     def tearDown(self):
@@ -137,6 +144,13 @@ class Inbox(unittest.TestCase):
             with self.subTest(what):
                 self.assertTrue(any(what in w for w in inbox.inspect(data)[1]), inbox.inspect(data)[1])
         self.assertTrue(any("says 3 lines and holds 2" in w for w in inbox.inspect(package(count=3, inner_count=2)[0], KEY)[1]))
+        # folio sides: only on a wording that gives them, checked inside the seal; a language and script always
+        self.assertEqual(inbox.inspect(package(wording="2", sides=2)[0], KEY)[1], [])
+        self.assertTrue(any("gives lines only" in w for w in inbox.inspect(package(wording="1", sides=1)[0])[1]))
+        self.assertTrue(any("no language and script" in w for w in inbox.inspect(package(script="")[0])[1]))
+        self.assertTrue(any("no lines and no folio sides" in w for w in inbox.inspect(package(count=0, inner_count=0)[0])[1]))
+        self.assertTrue(any("not drawn on it" in w for w in inbox.inspect(package(wording="2", sides=1, drawn="shared")[0], KEY)[1]))
+        self.assertTrue(any("says 2 folio sides and holds 1" in w for w in inbox.inspect(rezip(package(wording="2", sides=1)[0], lambda a: a.update(sides=2)), KEY)[1]))
         self.assertTrue(any("files a package does not hold" in w for w in inbox.inspect(package(extra={"run.sh": b"x"})[0], KEY)[1]))
 
     # ---- a contribution, again, and a withdrawal
@@ -146,7 +160,7 @@ class Inbox(unittest.TestCase):
         body = f"### Manuscript\n\nTest library, MS 1\n\n### Sealed package\n\n[manuscribe-contribution.zip]({f.as_uri()})\n"
         log = self.event(5, body, key=True)
         rows = self.rows()
-        self.assertEqual([(r["id"], r["issue"], r["contributor"], r["lines"], r["state"]) for r in rows], [(pid, "5", "alice", "2", "registered")])
+        self.assertEqual([(r["id"], r["issue"], r["contributor"], r["script"], r["lines"], r["sides"], r["state"]) for r in rows], [(pid, "5", "alice", "sa-Deva", "2", "0", "registered")])
         self.assertIn("lines opened and checked", rows[0]["note"])
         year = datetime.date.today().year
         for want in (f"gh release create packages-{year} -R owner/inbox --draft", f"gh release upload packages-{year}", "git commit: Registered " + pid,

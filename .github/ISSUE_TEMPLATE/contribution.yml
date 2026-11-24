@@ -1,5 +1,5 @@
-name: Contribute corrected lines
-description: Send the sealed package of corrected lines that Manuscribe saved (Manuscript tab › Contribute corrected lines…).
+name: Contribute corrected lines and folio sides
+description: Send the sealed package of corrected lines and folio sides that Manuscribe saved (Manuscript tab › Contribute corrected lines…).
 title: "Contribution: "
 labels: ["contribution"]
 body:
@@ -8,7 +8,7 @@ body:
       value: |
         Manuscribe filled in this form when it saved your package. **Drag the file it saved** (`manuscribe-contribution-c….zip`) into the *Sealed package* box below, then submit.
 
-        This issue is public: it shows the manuscript's name, the number of lines and your GitHub account. The lines themselves are sealed in the file, and only the maintainer of the models can open them. A bot answers here within a few minutes, once the package is registered.
+        This issue is public: it shows the manuscript's name, its language and script, the number of lines and folio sides, and your GitHub account. The lines and images themselves are sealed in the file, and only the maintainer of the models can open them. They train only the models of the manuscript's own language and script. A bot answers here within a few minutes, once the package is registered.
 
         To withdraw the lines later, use “Withdraw…” in Manuscribe's Manuscript tab, or open a “Withdraw contributed lines” issue.
   - type: input
@@ -24,9 +24,18 @@ body:
       label: Package ids
       description: As Manuscribe gave them (c20261124-…).
   - type: input
+    id: script
+    attributes:
+      label: Language and script
+      description: As stated with the consent (sa-Deva is Sanskrit in Devanagari).
+  - type: input
     id: lines
     attributes:
       label: Lines
+  - type: input
+    id: sides
+    attributes:
+      label: Folio sides
   - type: textarea
     id: package
     attributes:
@@ -40,5 +49,5 @@ body:
     attributes:
       label: Consent
       options:
-        - label: I gave this consent in Manuscribe, and I have the right to share these line images for training the recognition models.
+        - label: I gave this consent in Manuscribe, and I have the right to share these images (of lines and of whole folio sides) for training the recognition models.
           required: true

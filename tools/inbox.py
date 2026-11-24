@@ -4,16 +4,20 @@
 A contribution comes as an issue made with the "Contribute corrected lines" form, with a sealed package attached: a
 zip that Manuscribe made (Manuscript tab › Contribute corrected lines…), holding
 
-    contribution.json   in the clear: the package's id, the manuscript's name as the model cards are to give it, the
-                        number of lines, the consent record (yes, its date, the wording's version, the right to share
-                        the images confirmed), that wording itself, and the seal
-    sealed.bin          the lines (a zip: each line's image, its corrected text, what the model proposed), in
+    contribution.json   in the clear: the package's id, the manuscript's name as the model cards are to give it and its
+                        language and script (a tag as sa-Deva), the number of lines and of folio sides, the consent
+                        record (yes, its date, the wording's version, the right to share the images confirmed), that
+                        wording itself, and the seal
+    sealed.bin          the lines and sides (a zip: each line's image, its corrected text, what the model proposed; each
+                        folio side's image, the blocks its editor drew and their line counts), in
                         AES-256-GCM under a key of its own, that key wrapped by RSA-OAEP (SHA-256) to the maintainer's
                         public key: only the maintainer's private key opens it
 
 A package is taken if it is whole (its checksum and id are what its contribution.json says), was sealed to a key that
 approved.json lists, and its consent says yes, confirms the right to share the images, is not withdrawn, and was given
-on a wording that approved.json lists. Where the private key is a secret of this repository (CONTRIBUTION_KEY), the
+on a wording that approved.json lists ("sides": the wordings that give folio sides, not lines only), and it states
+the manuscript's language and script, by which everything here is kept apart: the models of one language and script
+learn from its contributions only. Where the private key is a secret of this repository (CONTRIBUTION_KEY), the
 lines are opened and checked too, and then forgotten; without it they are opened only on the maintainer's computer
 (devanagari-manuscript-ocr: python -m msocr.contributions sync). A package taken is kept as an asset of the draft release
 packages-<year> (a draft: only the maintainer sees it), registered in register.tsv, and the issue answered and closed;
@@ -55,8 +59,9 @@ from pathlib import Path
 
 __version__ = "0.11.0"
 
-FIELDS = ["id", "issue", "contributor", "manuscript", "lines", "part", "wording", "consent_date", "received", "state",
-          "store", "sha256", "bytes", "note"]
+FIELDS = ["id", "issue", "contributor", "manuscript", "script", "lines", "sides", "part", "wording", "consent_date", "received",
+          "state", "store", "sha256", "bytes", "note"]
+TAG = re.compile(r"^[a-z]{2,3}-[A-Z][a-z]{3}$")      # a language and script, as sa-Deva
 ALG = "RSA-OAEP-256+A256GCM"
 MAX = 26_000_000                       # GitHub takes attachments of up to 25 MB
 ID = re.compile(r"\bc\d{8}-[0-9a-f]{12}\b")
@@ -160,19 +165,32 @@ def check_inner(about, inner):
     except Exception:
         return ["its sealed lines are not a package"]
     why = []
-    if a.get("format") != "manuscribe-contribution" or a.get("version") != 1:
-        why.append("its sealed lines are not a package (format, version 1)")
-    lines = a.get("lines") or []
+    if a.get("format") != "manuscribe-contribution" or a.get("version") not in (1, 2):
+        why.append("its sealed lines are not a package (format, version 1 or 2)")
+    lines, sides = a.get("lines") or [], a.get("sides") or []
     if len(lines) != about.get("count"):
         why.append(f"it says {about.get('count')} lines and holds {len(lines)}")
+    if len(sides) != (about.get("sides") or 0):
+        why.append(f"it says {about.get('sides') or 0} folio sides and holds {len(sides)}")
     missing = [str(l.get("image")) for l in lines if l.get("image") not in names]
+    missing += [str(x) for sd in sides for x in (sd.get("image"), sd.get("geometry")) if x not in names]
     if missing:
-        why.append("line images missing: " + ", ".join(missing[:5]))
-    odd = sorted(n for n in names if n != "contribution.json" and (".." in n or not re.fullmatch(r"lines/[^/]+\.(png|txt)", n)))
+        why.append("images missing: " + ", ".join(missing[:5]))
+    odd = sorted(n for n in names if n != "contribution.json" and (".." in n or not re.fullmatch(r"lines/[^/]+\.(png|txt)|sides/[^/]+\.(jpg|json)", n)))
     if odd:
         why.append("files a package does not hold: " + ", ".join(odd[:5]))
     if (a.get("consent") or {}) != (about.get("consent") or {}):
         why.append("the consent inside is not the consent outside")
+    if (a.get("manuscript") or {}).get("script") != (about.get("manuscript") or {}).get("script"):
+        why.append("the language and script inside are not those outside")
+    for sd in sides:
+        try:
+            g = json.loads(z.read(sd.get("geometry")).decode("utf-8"))
+        except Exception:
+            why.append(f"{sd.get('geometry')}: not readable")
+            continue
+        if g.get("drawn") != "here":            # a side's blocks must be drawn on it, not applied from another side
+            why.append(f"{sd.get('folio')}: its blocks were not drawn on it (a calibration applied to the whole manuscript)")
     return why
 
 
@@ -220,8 +238,13 @@ def inspect(data, priv=None):
         why.append(f"its consent was given on wording {c.get('wording')!r}, which is not one taken here (a newer Manuscribe asks again)")
     if (about.get("wording") or {}).get("version") != c.get("wording"):
         why.append("the wording it carries is not the one its consent names")
-    if not isinstance(about.get("count"), int) or about["count"] < 1:
-        why.append("no lines")
+    n_sides = about.get("sides") or 0
+    if not isinstance(about.get("count"), int) or not isinstance(n_sides, int) or about["count"] < 0 or n_sides < 0 or about["count"] + n_sides < 1:
+        why.append("no lines and no folio sides")
+    if n_sides and c.get("wording") not in ok.get("sides", []):
+        why.append(f"folio sides given on wording {c.get('wording')!r}, which gives lines only (Manuscribe asks again)")
+    if not TAG.match(str((about.get("manuscript") or {}).get("script", ""))):
+        why.append("no language and script stated for the manuscript (a tag as sa-Deva; Manuscribe asks for it with the consent)")
     if not str((about.get("manuscript") or {}).get("name", "")).strip():
         why.append("no name for the manuscript")
     inner = None
@@ -386,7 +409,8 @@ def contribution(issue, opened=True):
             f.write_bytes(data)
             gh("release", "upload", store, str(f), "-R", repo(), "--clobber")
         c, part = about["consent"], about.get("part") or [1, 1]
-        row = {"id": pid, "issue": n, "contributor": who, "manuscript": about["manuscript"]["name"].strip(), "lines": about["count"],
+        row = {"id": pid, "issue": n, "contributor": who, "manuscript": about["manuscript"]["name"].strip(), "script": about["manuscript"]["script"],
+               "lines": about["count"], "sides": about.get("sides") or 0,
                "part": f"{part[0]}/{part[1]}", "wording": c["wording"], "consent_date": str(c.get("date", ""))[:10],
                "received": now().isoformat(timespec="seconds"), "state": "registered", "store": store,
                "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data),
@@ -396,14 +420,16 @@ def contribution(issue, opened=True):
         taken.append(row)
     if taken:
         write_register(rows)
-        commit(f"Registered {', '.join(r['id'] for r in taken)} ({sum(int(r['lines']) for r in taken)} lines of {taken[0]['manuscript']}), issue #{n}")
+        commit(f"Registered {', '.join(r['id'] for r in taken)} ({sum(int(r['lines']) for r in taken)} lines, {sum(int(r['sides'] or 0) for r in taken)} folio sides "
+               f"of {taken[0]['manuscript']}, {taken[0]['script']}), issue #{n}")
     if not taken and not refused and (not opened or all(str(r["issue"]) == str(n) for r in again)):
         return True                     # an edit that brings nothing new, or an issue a sweep answered already
     say = []
     if taken:
         tag = release(f"+ {', '.join(r['id'] for r in taken)} (#{n})")
-        say.append("Thank you. Registered:\n\n" + "\n".join(f"- `{r['id']}`: {r['lines']} lines of “{r['manuscript']}”, consent of {r['consent_date']} (wording {r['wording']})" for r in taken)
-                   + f"\n\nThe lines are kept sealed; they will be used to train the recognition models from the next training on (data release `{tag}`). "
+        say.append("Thank you. Registered:\n\n" + "\n".join(f"- `{r['id']}`: {r['lines']} lines" + (f" and {r['sides']} folio sides" if int(r["sides"] or 0) else "")
+                                                         + f" of “{r['manuscript']}” ({r['script']}), consent of {r['consent_date']} (wording {r['wording']})" for r in taken)
+                   + f"\n\nThey are kept sealed, and will be used to train the recognition models for {taken[0]['script']} only, from the next training on (data release `{tag}`). "
                      "To withdraw them later: Manuscribe's “Withdraw…” in the Manuscript tab, or a “Withdraw contributed lines” issue naming these ids.")
     if again:
         say.append("Already registered: " + ", ".join(f"`{r['id']}` (issue #{r['issue']})" for r in again) + ".")
@@ -450,9 +476,10 @@ def withdrawal(issue, confirmed=False):
     say = []
     if gone:
         write_register(rows)
-        commit(f"Withdrawn {', '.join(r['id'] for r in gone)} ({sum(int(r['lines']) for r in gone)} lines), issue #{n}")
+        commit(f"Withdrawn {', '.join(r['id'] for r in gone)} ({sum(int(r['lines']) for r in gone)} lines, {sum(int(r.get('sides') or 0) for r in gone)} folio sides), issue #{n}")
         tag = release(f"− {', '.join(r['id'] for r in gone)} (#{n})")
-        say.append("Withdrawn:\n\n" + "\n".join(f"- `{r['id']}`: {r['lines']} lines of “{r['manuscript']}” (issue #{r['issue']})" for r in gone)
+        say.append("Withdrawn:\n\n" + "\n".join(f"- `{r['id']}`: {r['lines']} lines" + (f" and {r['sides']} folio sides" if int(r.get("sides") or 0) else "")
+                                                 + f" of “{r['manuscript']}” (issue #{r['issue']})" for r in gone)
                    + f"\n\nTheir sealed packages are deleted here, and they are left out of every model trained from now on (data release `{tag}` no longer lists them). "
                      "Models already trained on them while the consent stood remain, and are not withdrawn.")
     if before:
@@ -479,14 +506,20 @@ def release(change=""):
         tag = f"data-{t:%Y%m%d-%H%M%S}-{k}"
     reg = [r for r in rows if r["state"] == "registered"]
     gone = [r for r in rows if r["state"] == "withdrawn"]
-    keys = ("id", "manuscript", "lines", "part", "wording", "consent_date", "issue", "contributor", "store", "sha256", "bytes")
+    keys = ("id", "manuscript", "script", "lines", "sides", "part", "wording", "consent_date", "issue", "contributor", "store", "sha256", "bytes")
     dataset = {"release": tag, "made": t.isoformat(timespec="seconds"), "inbox": repo(), "approved": approved(),
-               "contributions": [{k: r[k] for k in keys} for r in reg],
+               "contributions": [{k: r.get(k, "") for k in keys} for r in reg],
                "withdrawn": [{"id": r["id"], "manuscript": r["manuscript"], "lines": r["lines"], "note": r["note"]} for r in gone]}
-    lines = sum(int(r["lines"]) for r in reg)
-    mss = sorted({r["manuscript"] for r in reg})
-    notes = (f"What training may use from {t:%d %B %Y, %H:%M} UTC: {len(reg)} package(s), {lines} lines, of {len(mss)} manuscript(s)"
-             + (": " + "; ".join(mss) if mss else "") + "."
+    by_script = {}
+    for r in reg:
+        b = by_script.setdefault(r.get("script") or "no script stated", {"packages": 0, "lines": 0, "sides": 0, "mss": set()})
+        b["packages"] += 1
+        b["lines"] += int(r["lines"] or 0)
+        b["sides"] += int(r.get("sides") or 0)
+        b["mss"].add(r["manuscript"])
+    notes = (f"What training may use from {t:%d %B %Y, %H:%M} UTC, by language and script (each trains its own models only):"
+             + ("".join(f"\n- {k}: {b['packages']} package(s), {b['lines']} lines, {b['sides']} folio sides, of {len(b['mss'])} manuscript(s): "
+                        + "; ".join(sorted(b["mss"])) for k, b in sorted(by_script.items())) if by_script else " nothing yet.")
              + (f"\n\nThis release: {change}." if change else "")
              + (f"\n\nWithdrawn, and left out from their withdrawal on: {len(gone)} package(s)." if gone else "")
              + "\n\n`dataset.json` lists the packages (sealed; the maintainer's key opens them) and `register.tsv` is the register as it stood. "

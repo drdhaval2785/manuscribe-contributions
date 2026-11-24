@@ -1,8 +1,13 @@
 # Contributed lines for Manuscribe's recognition models
 
-Manuscribe reads Sanskrit manuscript pages with recognition models that run in the browser. The models read better
-when they learn from lines that people have read and corrected. This repository is where editors who agree send the
-corrected lines of a manuscript, so that the next models can learn from them.
+Manuscribe reads manuscript pages with recognition models that run in the browser. The models read better when they
+learn from pages that people have read and corrected. This repository is where editors who agree send the corrected
+lines of a manuscript, and its folio sides whose blocks they have drawn and counted, so that the next models can learn
+from them: the line recogniser from the lines, the line segmenter from the sides.
+
+**Languages and scripts are kept apart.** Every contribution states the manuscript's language and script (a tag as
+`sa-Deva`, Sanskrit in Devanagari), and is registered and released under it; the models of one language and script
+learn from its contributions only.
 
 Nothing here is sent automatically, and nothing is contributed without the editor's yes for that manuscript.
 
@@ -15,9 +20,10 @@ Nothing here is sent automatically, and nothing is contributed without the edito
    form filled in. Drag the file into the **Sealed package** box and submit.
 4. A bot answers on the issue within a few minutes: the package is registered, or it says what is wrong.
 
-**What is public and what is not.** The issue is public: it shows the manuscript's name as you gave it, the number of
-lines, the date and wording of your consent, and your GitHub account. The lines themselves (their images and their
-text) are sealed in the file: they are encrypted to the maintainer's key, and only the maintainer can open them. The
+**What is public and what is not.** The issue is public: it shows the manuscript's name as you gave it, its language
+and script, the number of lines and folio sides, the date and wording of your consent, and your GitHub account. The
+lines and sides themselves (their images and texts) are sealed in the file: they are encrypted to the maintainer's
+key, and only the maintainer can open them. Folio sides are taken only on a consent that gives them (wording 2). The
 sealed files are kept in a draft release that only the maintainer sees.
 
 **Withdrawing.** Manuscribe's **Withdraw…** (Manuscript tab) opens a "Withdraw contributed lines" issue naming the
@@ -47,8 +53,10 @@ them; without it, the lines are opened only on the maintainer's computer.
 
 ## Files
 
-- `register.tsv`: a row per package (id, issue, GitHub account, manuscript, lines, consent wording and date, state).
-- `approved.json`: the consent wordings taken (Manuscribe's `CONSENT.version`) and the ids of the maintainer's keys.
+- `register.tsv`: a row per package (id, issue, GitHub account, manuscript, language and script, lines, folio sides,
+  consent wording and date, state).
+- `approved.json`: the consent wordings taken (Manuscribe's `CONSENT.version`), those of them that give folio sides,
+  and the ids of the maintainer's keys.
 - `tools/inbox.py`: the bot (Python's standard library, and `cryptography` only to open lines).
 - `tests/test_inbox.py`: the bot without GitHub: `python -m pip install cryptography`, then
   `python -m unittest discover -s tests -v`.

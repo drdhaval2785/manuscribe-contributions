@@ -98,4 +98,4 @@ A withdrawal received by e-mail: open a "Withdraw contributed lines" issue yours
 takes it from you. To withdraw lines sent by another account on their behalf, add the label `withdrawal-confirmed` to
 their withdrawal issue.
 
-Version 0.13.0, with Manuscribe 0.13.0 (Manuscribe and its companions always carry the same version number). The code is under the GNU GPL v3 (LICENSE), as Manuscribe's.
+Version 0.13.1, with Manuscribe 0.13.1 (Manuscribe and its companions always carry the same version number). The code is under the GNU GPL v3 (LICENSE), as Manuscribe's.

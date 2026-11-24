@@ -66,16 +66,20 @@ Once, when this repository is made:
    (Settings › Secrets and variables › Actions): the contents of `~/.config/manuscribe/contribution-key.pem`. Without
    it, the lines never leave your computer unsealed.
 
-The key: made once on the maintainer's computer by manuscript_ocr (`python -m msocr.seal keygen`). The private key
+The key: made once on the maintainer's computer by
+[devanagari-manuscript-ocr](https://github.com/drdhaval2785/devanagari-manuscript-ocr) (`python -m msocr.seal keygen`). The private key
 stays at `~/.config/manuscribe/contribution-key.pem`; **keep a copy somewhere safe**, since the lines sealed to it open
 with nothing else. The public key goes on the models' site (`python -m msocr.site` writes `contribute.json`), where
 Manuscribe fetches it.
 
-To train with the lines: `python -m msocr.contributions sync` (in manuscript_ocr, signed in to `gh`) fetches the
-packages registered here and not yet there, opens them, and withdraws there what was withdrawn here.
+To train with the lines: `python -m msocr.contributions sync` (in devanagari-manuscript-ocr, signed in to `gh`) fetches the
+packages registered here and not yet there, opens them, checks every line (`msocr/linequality.py`: lines that fail are
+left out, a package with too many failures is quarantined until `contributions accept <id>`), and withdraws there what
+was withdrawn here; `python -m msocr.recognizer pool` then trains on the lines that passed, guarded so that they cannot
+make the model read the developer's own manuscripts worse, and the model's card names the packages and data release.
 
 A new consent wording: change it in Manuscribe (a new `CONSENT.version`), then add the version to `approved.json` here
-and to `APPROVED` in manuscript_ocr's `msocr/contributions.py`, and run `python -m msocr.site` so that the site's
+and to `APPROVED` in devanagari-manuscript-ocr's `msocr/contributions.py`, and run `python -m msocr.site` so that the site's
 `contribute.json` lists it.
 
 A withdrawal received by e-mail: open a "Withdraw contributed lines" issue yourself with the ids; as the owner, the bot

@@ -15,7 +15,7 @@ A package is taken if it is whole (its checksum and id are what its contribution
 approved.json lists, and its consent says yes, confirms the right to share the images, is not withdrawn, and was given
 on a wording that approved.json lists. Where the private key is a secret of this repository (CONTRIBUTION_KEY), the
 lines are opened and checked too, and then forgotten; without it they are opened only on the maintainer's computer
-(manuscript_ocr: python -m msocr.contributions sync). A package taken is kept as an asset of the draft release
+(devanagari-manuscript-ocr: python -m msocr.contributions sync). A package taken is kept as an asset of the draft release
 packages-<year> (a draft: only the maintainer sees it), registered in register.tsv, and the issue answered and closed;
 a package refused is answered with the reasons.
 

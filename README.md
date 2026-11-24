@@ -13,11 +13,14 @@ Nothing here is sent automatically, and nothing is contributed without the edito
 
 ## Sending lines (for editors)
 
-1. In Manuscribe, read folio sides with **Recognise this side…** (Folio tab), and correct and accept the lines.
+1. In Manuscribe, read folio sides with **⚡ Recognise** (on the scan's toolbar, or the Folio tab), and correct and
+   accept the lines.
 2. In the Manuscript tab, answer the question about training (Settings › Recognition asks it, if you tick that you
    wish to be asked). A yes needs the right to share the images confirmed.
 3. **Contribute corrected lines…** saves a file, `manuscribe-contribution-c….zip`, and opens a new issue here with its
-   form filled in. Drag the file into the **Sealed package** box and submit.
+   form filled in. Drag the file into the **Sealed package** box and submit. With the consent of wording 2 the file
+   also holds the folio sides whose blocks you drew on that side itself (Calibrate; not a calibration applied from
+   another side) and whose every block holds as many lines of text as you gave it: they teach the segmenter.
 4. A bot answers on the issue within a few minutes: the package is registered, or it says what is wrong.
 
 **What is public and what is not.** The issue is public: it shows the manuscript's name as you gave it, its language
@@ -40,7 +43,8 @@ drdhaval2785@gmail.com with the package ids.
 - **A contribution.** It fetches each attached file and takes it only if it is a sealed package from Manuscribe that
   is whole (its checksum and id are what it says), was sealed to a key that `approved.json` lists, and carries a
   consent that says yes, confirms the right to share the images, is not withdrawn, and was given on a wording that
-  `approved.json` lists. A package taken is kept as an asset of the draft release `packages-<year>`, registered in
+  `approved.json` lists; inside the seal, every folio side's image and blocks must be there, its blocks drawn on that
+  side itself. A package taken is kept as an asset of the draft release `packages-<year>`, registered in
   `register.tsv`, and answered; the issue is closed. A package refused is answered with the reasons.
 - **A withdrawal.** It deletes the named packages' assets and marks their rows withdrawn (rows are kept, so that a
   model's card can say what it no longer learns from).

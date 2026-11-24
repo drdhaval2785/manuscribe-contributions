@@ -18,8 +18,8 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       CONTRIBUTION_KEY: ${{ secrets.CONTRIBUTION_KEY }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: The package that opens sealed lines, where the maintainer's key is a secret here

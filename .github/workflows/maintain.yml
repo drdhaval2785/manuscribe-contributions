@@ -24,8 +24,8 @@ jobs:
       CONTRIBUTION_KEY: ${{ secrets.CONTRIBUTION_KEY }}
       TASK: ${{ inputs.task }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: if [ -n "$CONTRIBUTION_KEY" ]; then python -m pip install --quiet cryptography; fi

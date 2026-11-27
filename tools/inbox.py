@@ -57,7 +57,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-__version__ = "0.13.2"            # Manuscribe and its companions always carry the same version number
+__version__ = "0.13.3"            # Manuscribe and its companions always carry the same version number
 
 FIELDS = ["id", "issue", "contributor", "manuscript", "script", "lines", "sides", "part", "wording", "consent_date", "received",
           "state", "store", "sha256", "bytes", "note"]

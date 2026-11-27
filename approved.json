@@ -1,13 +1,16 @@
 {
  "wordings": [
-  "1",
-  "2"
+  "3"
  ],
  "keys": [
   "fed7ed31e9afc8c5"
  ],
  "about": "wordings: the versions of the consent text (Manuscribe, recogview.js CONSENT.version) whose packages are taken; sides: those of them that give whole folio sides, not lines only; keys: the ids of the maintainer's public keys (devanagari-manuscript-ocr: python -m msocr.seal show) a package may be sealed to",
  "sides": [
-  "2"
- ]
+  "3"
+ ],
+ "retired": {
+  "1": "named CC BY-SA 4.0 for the models; retired 2026-11-27, when the segmenter and recogniser became CC BY-NC-SA 4.0 (no package was given on it)",
+  "2": "as 1"
+ }
 }

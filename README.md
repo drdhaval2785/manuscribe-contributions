@@ -18,7 +18,7 @@ Nothing here is sent automatically, and nothing is contributed without the edito
 2. In the Manuscript tab, answer the question about training (Settings › Recognition asks it, if you tick that you
    wish to be asked). A yes needs the right to share the images confirmed.
 3. **Contribute corrected lines…** saves a file, `manuscribe-contribution-c….zip`, and opens a new issue here with its
-   form filled in. Drag the file into the **Sealed package** box and submit. With the consent of wording 2 the file
+   form filled in. Drag the file into the **Sealed package** box and submit. With the consent of wording 3 the file
    also holds the folio sides whose blocks you drew on that side itself (Calibrate; not a calibration applied from
    another side) and whose every block holds as many lines of text as you gave it: they teach the segmenter.
 4. A bot answers on the issue within a few minutes: the package is registered, or it says what is wrong.
@@ -26,7 +26,7 @@ Nothing here is sent automatically, and nothing is contributed without the edito
 **What is public and what is not.** The issue is public: it shows the manuscript's name as you gave it, its language
 and script, the number of lines and folio sides, the date and wording of your consent, and your GitHub account. The
 lines and sides themselves (their images and texts) are sealed in the file: they are encrypted to the maintainer's
-key, and only the maintainer can open them. Folio sides are taken only on a consent that gives them (wording 2). The
+key, and only the maintainer can open them. Folio sides are taken only on a consent that gives them (wording 3). The
 sealed files are kept in a draft release that only the maintainer sees.
 
 **Withdrawing.** Manuscribe's **Withdraw…** (Manuscript tab) opens a "Withdraw contributed lines" issue naming the
@@ -89,6 +89,10 @@ packages registered here and not yet there, opens them, checks every line (`msoc
 left out, a package with too many failures is quarantined until `contributions accept <id>`), and withdraws there what
 was withdrawn here; `python -m msocr.recognizer pool` then trains on the lines that passed, guarded so that they cannot
 make the model read the developer's own manuscripts worse, and the model's card names the packages and data release.
+
+Wordings 1 and 2 (24 November 2026) told contributors the models are published under CC BY-SA 4.0; since 27
+November 2026 the segmenter and the recogniser are CC BY-NC-SA 4.0, so only wording 3, which says so, is taken (no
+package had been given on 1 or 2).
 
 A new consent wording: change it in Manuscribe (a new `CONSENT.version`), then add the version to `approved.json` here
 and to `APPROVED` in devanagari-manuscript-ocr's `msocr/contributions.py`, and run `python -m msocr.site` so that the site's
